@@ -1,3 +1,4 @@
+import re
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
@@ -27,7 +28,13 @@ def scrape_comic_prices(comic_name):
             title = listing.find_element(By.CSS_SELECTOR, '.s-item__title').text  # Adjust selector if necessary
             if 'graded' in title.lower():  # Check if 'graded' is in the title
                 price = listing.find_element(By.CSS_SELECTOR, '.s-item__price').text  # Adjust selector if necessary
-                print(f'Title: {title}, Price: {price}')
+                grade_match = re.search(r'(CGC|NM|VF|VG|G|PG)\s*(?:graded\s*)?(\d+\.\d+)|(\d+\.\d+)\s*(?:graded\s*)?(CGC|NM|VF|VG|G|PG)', title, re.I)
+                if grade_match:
+                    # Reconstruct the grade string if elements are found out of order
+                    grade = grade_match.group(1) + ' ' + grade_match.group(2) if grade_match.group(1) else grade_match.group(4) + ' ' + grade_match.group(3)
+                else:
+                    grade = 'Grade not specified'
+                print(f'Title: {title}, Price: {price}, Grade: {grade}')
 
     finally:
         driver.quit()
