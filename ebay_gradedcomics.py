@@ -41,9 +41,8 @@ def scrape_comic_prices(comic_name):
                     comics.append({'title': title, 'url': url, 'grade': grade, 'price': price})
 
                     # Write to CSV
-        with open('comics.csv', 'w', newline='', encoding='utf-8') as file:
+        with open('comics.csv', 'a', newline='', encoding='utf-8') as file:
             writer = csv.writer(file)
-            writer.writerow(['Title', 'URL', 'Grade', 'Price'])  # Writing the headers
             for comic in comics:
                 writer.writerow([comic['title'], comic['url'], comic['grade'], comic['price']])
 
