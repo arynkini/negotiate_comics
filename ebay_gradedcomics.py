@@ -1,4 +1,5 @@
 import re
+import csv
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
@@ -23,18 +24,28 @@ def scrape_comic_prices(comic_name):
         time.sleep(5)  # Wait for search results to load
 
         # Collect data
+        comics = []
         listings = driver.find_elements(By.CSS_SELECTOR, '.s-item')  # Adjust selector based on eBay’s layout
         for listing in listings:
             title = listing.find_element(By.CSS_SELECTOR, '.s-item__title').text  # Adjust selector if necessary
             if 'graded' in title.lower():  # Check if 'graded' is in the title
                 price = listing.find_element(By.CSS_SELECTOR, '.s-item__price').text  # Adjust selector if necessary
                 grade_match = re.search(r'(CGC|NM|VF|VG|G|PG)\s*(?:graded\s*)?(\d+\.\d+)|(\d+\.\d+)\s*(?:graded\s*)?(CGC|NM|VF|VG|G|PG)', title, re.I)
+                url = listing.find_element(By.CSS_SELECTOR, 'a').get_attribute('href')
                 if grade_match:
                     # Reconstruct the grade string if elements are found out of order
                     grade = grade_match.group(1) + ' ' + grade_match.group(2) if grade_match.group(1) else grade_match.group(4) + ' ' + grade_match.group(3)
                 else:
                     grade = 'Grade not specified'
-                print(f'Title: {title}, Price: {price}, Grade: {grade}')
+                if 'graded' in title.lower():
+                    comics.append({'title': title, 'url': url, 'grade': grade, 'price': price})
+
+                    # Write to CSV
+        with open('comics.csv', 'w', newline='', encoding='utf-8') as file:
+            writer = csv.writer(file)
+            writer.writerow(['Title', 'URL', 'Grade', 'Price'])  # Writing the headers
+            for comic in comics:
+                writer.writerow([comic['title'], comic['url'], comic['grade'], comic['price']])
 
     finally:
         driver.quit()
